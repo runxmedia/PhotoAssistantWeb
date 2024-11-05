@@ -135,7 +135,7 @@
         // Load background image with cross-origin allowance (if applicable)
         const backgroundImage = new Image();
         backgroundImage.crossOrigin = 'anonymous';  // Fix for cross-origin issues if allowed by server
-        backgroundImage.src = 'https://raw.githubusercontent.com/runxmedia/PhotoAssistantWeb/refs/heads/main/card.png;  // Path to your background image
+        backgroundImage.src = 'https://raw.githubusercontent.com/runxmedia/PhotoAssistantWeb/refs/heads/main/card.png';  // Path to your background image
 
         // Once the background is loaded, draw it and then the QR code
         backgroundImage.onload = () => {
