@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form with QR Code</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('https://raw.githubusercontent.com/mporetvivint/RunXGenerator/refs/heads/main/bg.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #form-container, #qr-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px 0;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #qr-container {
+            display: none;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        #qr-code {
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            background-color: white;
+        }
+
+        #download-btn {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #download-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div id="form-container">
+    <h2>RunX Festival Photo Pass</h2>
+    <h3>Enter your full name and email</h3>
+    <form id="user-form">
+        <input type="text" id="name" placeholder="Full name" required>
+        <input type="email" id="email" placeholder="Sunrun Email" required>
+        <button type="submit">Submit</button>
+    </form>
+</div>
+
+<div id="qr-container">
+    <h2>Save Your Photo Pass</h2>
+    <canvas id="qr-code" width="512" height="512"></canvas>
+    <button id="download-btn">Download Photo Pass</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+    document.getElementById('user-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        
+        // Email validation for Sunrun domain
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@sunrun\.com$/;
+        if (!emailPattern.test(email)) {
+            alert("Please enter a valid Sunrun email (e.g., example@sunrun.com)");
+            return;
+        }
+
+        // Generate QR code with the input data as JSON
+        const qrData = JSON.stringify({
+            name: name,
+            email: email
+        });
+
+        const qr = qrcode(0, 'L');
+        qr.addData(qrData);
+        qr.make();
+
+        // Hide the form and show the QR code
+        document.getElementById('form-container').style.display = 'none';
+        document.getElementById('qr-container').style.display = 'block';
+
+        // Set the canvas to the correct dimensions of the background image (256x512)
+        const canvas = document.getElementById('qr-code');
+        const ctx = canvas.getContext('2d');
+        const bgWidth = 256;
+        const bgHeight = 512;
+
+        // Clear the canvas and set up the correct resolution
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.width = bgWidth;
+        canvas.height = bgHeight;
+
+        // Load background image with cross-origin allowance (if applicable)
+        const backgroundImage = new Image();
+        backgroundImage.crossOrigin = 'anonymous';  // Fix for cross-origin issues if allowed by server
+        backgroundImage.src = 'https://raw.githubusercontent.com/mporetvivint/RunXGenerator/refs/heads/main/card.png';  // Path to your background image
+
+        // Once the background is loaded, draw it and then the QR code
+        backgroundImage.onload = () => {
+            // Draw the background image at its original size (256x512)
+            ctx.drawImage(backgroundImage, 0, 0, bgWidth, bgHeight);
+
+            // Generate the QR code image
+            const qrImage = new Image();
+            qrImage.src = qr.createDataURL(4);  // Generate higher density QR code
+
+            qrImage.onload = () => {
+                // Draw the QR code on top of the background image
+                const qrSize = 200;  // Adjust QR size as needed
+                const qrX = (bgWidth - qrSize) / 2;  // Center QR code horizontally
+                const qrY = (bgHeight - qrSize) / 2;  // Center QR code vertically
+                ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+            };
+        };
+
+        // Enable download button to download the composited image
+        document.getElementById('download-btn').addEventListener('click', function () {
+            try {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL("image/png");
+                link.download = 'composited_qrcode.png';  // Name of the downloaded file
+                link.click();
+            } catch (error) {
+                console.error('Error downloading the image:', error);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
